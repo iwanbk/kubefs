@@ -6,17 +6,18 @@ import (
 
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
+	"github.com/iwanbk/kubefs/kube"
 )
 
 type rootDir struct {
 	kubeCtx string
-	nss     []string
+	cli     *kube.Client
 }
 
-func newRootDir(kubeCtx string, nss []string) *rootDir {
+func newRootDir(kubeCtx string, kubeCli *kube.Client) *rootDir {
 	return &rootDir{
 		kubeCtx: kubeCtx,
-		nss:     nss,
+		cli:     kubeCli,
 	}
 }
 
