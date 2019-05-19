@@ -3,6 +3,7 @@ module github.com/iwanbk/kubefs
 go 1.12
 
 require (
+	bazil.org/fuse v0.0.0-20180421153158-65cc252bf669
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/gogo/protobuf v1.2.1 // indirect
 	github.com/golang/protobuf v1.3.1 // indirect

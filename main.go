@@ -15,6 +15,9 @@ func main() {
 	var (
 		kubeClient *kubernetes.Clientset
 	)
+	const (
+		mountPoint = "/tmp/kfs"
+	)
 
 	_, err := rest.InClusterConfig()
 	if err != nil {
@@ -34,6 +37,12 @@ func main() {
 	for i, ns := range nss {
 		log.Printf("%d : %s", i, ns)
 	}
+
+	err = mount(mountPoint, "", nss)
+	if err != nil {
+		log.Fatalf("err = %v", err)
+	}
+	log.Println("OK")
 }
 
 func GetClient() *kubernetes.Clientset {
