@@ -2,20 +2,21 @@ package filesys
 
 import (
 	"bazil.org/fuse/fs"
+	"github.com/iwanbk/kubefs/kube"
 )
 
 type FS struct {
-	kubeCtx string
-	nss     []string
+	cli  *kube.Client
+	root *rootDir
 }
 
-func NewFS(kubeCtx string, nss []string) *FS {
+func NewFS(kubeCli *kube.Client) *FS {
 	return &FS{
-		kubeCtx: kubeCtx,
-		nss:     nss,
+		cli:  kubeCli,
+		root: newRootDir(kubeCli),
 	}
 }
 
 func (f *FS) Root() (fs.Node, error) {
-	return newRootDir(f.kubeCtx, f.nss), nil
+	return f.root, nil
 }
