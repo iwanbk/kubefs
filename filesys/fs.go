@@ -20,3 +20,12 @@ func NewFS(kubeCli *kube.Client) *FS {
 func (f *FS) Root() (fs.Node, error) {
 	return f.root, nil
 }
+
+const (
+	prefixNamespace = "root"
+	prefixPod       = "pods"
+)
+
+const (
+	dirPodName = "pods"
+)
