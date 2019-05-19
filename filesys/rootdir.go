@@ -2,26 +2,28 @@ package filesys
 
 import (
 	"context"
+	//"log"
 	"os"
 
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
 	"github.com/iwanbk/kubefs/kube"
-	log "github.com/sirupsen/logrus"
 )
 
+// rootDir represents kubefs root directory.
+// this directory contains all namespace in the cluster
 type rootDir struct {
-	kubeCtx string
-	cli     *kube.Client
+	cli *kube.Client
 }
 
-func newRootDir(kubeCtx string, kubeCli *kube.Client) *rootDir {
+func newRootDir(kubeCli *kube.Client) *rootDir {
 	return &rootDir{
-		kubeCtx: kubeCtx,
-		cli:     kubeCli,
+		cli: kubeCli,
 	}
 }
 
+// Attr returns file attr of root dir.
+// the inode is always 1
 func (rd *rootDir) Attr(ctx context.Context, attr *fuse.Attr) error {
 	attr.Inode = 1
 	attr.Mode = os.ModeDir | 0555
@@ -29,13 +31,15 @@ func (rd *rootDir) Attr(ctx context.Context, attr *fuse.Attr) error {
 }
 
 func (rd *rootDir) Lookup(ctx context.Context, name string) (fs.Node, error) {
-	log.Infof("rd lookup %v", name)
-	if name == "hello" {
-		return File{}, nil
+	inode, ok := inoMgr.get(prefixNamespace, name)
+	if !ok {
+		return nil, fuse.ENOENT
 	}
-	return nil, fuse.ENOENT
+
+	return newNamespaceDir(inode, name), nil
 }
 
+// ReadDirAll
 func (rd *rootDir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 	// get namespaces
 	nss, err := rd.cli.GetNamespacesName()
@@ -49,7 +53,7 @@ func (rd *rootDir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 
 	for _, ns := range nss {
 		dirs = append(dirs, fuse.Dirent{
-			Inode: inoMgr.get("ns", ns),
+			Inode: inoMgr.getOrCreate("ns", ns),
 			Name:  ns,
 			Type:  fuse.DT_Dir,
 		})
@@ -57,18 +61,29 @@ func (rd *rootDir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 	return dirs, nil
 }
 
-// File implements both Node and Handle for the hello file.
-type File struct{}
+// namespaceDir dir represents a namespace directory
+type namespaceDir struct {
+	inode uint64
+	name  string
+}
 
-const greeting = "hello, world\n"
+func newNamespaceDir(inode uint64, name string) *namespaceDir {
+	return &namespaceDir{
+		inode: inode,
+		name:  name,
+	}
+}
 
-func (File) Attr(ctx context.Context, a *fuse.Attr) error {
-	a.Inode = 2
-	a.Mode = 0444
-	a.Size = uint64(len(greeting))
+func (nd *namespaceDir) Attr(ctx context.Context, attr *fuse.Attr) error {
+	attr.Inode = nd.inode
+	attr.Mode = os.ModeDir | 0555
 	return nil
 }
 
-func (File) ReadAll(ctx context.Context) ([]byte, error) {
-	return []byte(greeting), nil
+func (nd *namespaceDir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
+	return nil, fuse.ENOTSUP
 }
+
+const (
+	prefixNamespace = "ns"
+)

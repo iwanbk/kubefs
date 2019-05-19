@@ -6,16 +6,14 @@ import (
 )
 
 type FS struct {
-	kubeCtx string
-	cli     *kube.Client
-	root    *rootDir
+	cli  *kube.Client
+	root *rootDir
 }
 
-func NewFS(kubeCtx string, kubeCli *kube.Client) *FS {
+func NewFS(kubeCli *kube.Client) *FS {
 	return &FS{
-		kubeCtx: kubeCtx,
-		cli:     kubeCli,
-		root:    newRootDir(kubeCtx, kubeCli),
+		cli:  kubeCli,
+		root: newRootDir(kubeCli),
 	}
 }
 

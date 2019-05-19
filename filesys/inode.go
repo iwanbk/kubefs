@@ -25,7 +25,7 @@ func newInodeManager() *inodeManager {
 	}
 }
 
-func (im *inodeManager) get(prefix, key string) uint64 {
+func (im *inodeManager) get(prefix, key string) (uint64, bool) {
 	fullKey := prefix + ":" + key
 
 	// check existing
@@ -33,10 +33,16 @@ func (im *inodeManager) get(prefix, key string) uint64 {
 	id, ok := im.inodes[fullKey]
 	im.mtx.RUnlock()
 
+	return id, ok
+}
+
+func (im *inodeManager) getOrCreate(prefix, key string) uint64 {
+	id, ok := im.get(prefix, key)
 	if ok {
 		return id
 	}
 
+	fullKey := prefix + ":" + key
 	// generate new
 	im.mtx.Lock()
 
