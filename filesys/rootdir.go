@@ -7,6 +7,7 @@ import (
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
 	"github.com/iwanbk/kubefs/kube"
+	log "github.com/sirupsen/logrus"
 )
 
 type rootDir struct {
@@ -28,18 +29,32 @@ func (rd *rootDir) Attr(ctx context.Context, attr *fuse.Attr) error {
 }
 
 func (rd *rootDir) Lookup(ctx context.Context, name string) (fs.Node, error) {
+	log.Infof("rd lookup %v", name)
 	if name == "hello" {
 		return File{}, nil
 	}
 	return nil, fuse.ENOENT
 }
 
-var dirDirs = []fuse.Dirent{
-	{Inode: 2, Name: "hello", Type: fuse.DT_File},
-}
+func (rd *rootDir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
+	// get namespaces
+	nss, err := rd.cli.GetNamespacesName()
+	if err != nil {
+		return nil, fuse.EIO
+	}
 
-func (*rootDir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
-	return dirDirs, nil
+	var (
+		dirs = make([]fuse.Dirent, 0, len(nss))
+	)
+
+	for _, ns := range nss {
+		dirs = append(dirs, fuse.Dirent{
+			Inode: inoMgr.get("ns", ns),
+			Name:  ns,
+			Type:  fuse.DT_Dir,
+		})
+	}
+	return dirs, nil
 }
 
 // File implements both Node and Handle for the hello file.
