@@ -2,23 +2,25 @@ package filesys
 
 import (
 	"context"
-	//"log"
 	"os"
 
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
+	"github.com/iwanbk/kubefs/kube"
 )
 
 // namespaceDir dir represents a namespace directory
 type namespaceDir struct {
 	inode uint64
 	name  string
+	cli   *kube.Client
 }
 
-func newNamespaceDir(inode uint64, name string) *namespaceDir {
+func newNamespaceDir(inode uint64, name string, cli *kube.Client) *namespaceDir {
 	return &namespaceDir{
 		inode: inode,
 		name:  name,
+		cli:   cli,
 	}
 }
 
@@ -45,5 +47,5 @@ func (nd *namespaceDir) Lookup(ctx context.Context, name string) (fs.Node, error
 		return nil, fuse.ENOENT
 	}
 
-	return newPodDir(inode, name), nil
+	return newPodDir(inode, nd.name, name, nd.cli), nil
 }

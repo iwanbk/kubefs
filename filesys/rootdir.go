@@ -35,7 +35,7 @@ func (rd *rootDir) Lookup(ctx context.Context, name string) (fs.Node, error) {
 		return nil, fuse.ENOENT
 	}
 
-	return newNamespaceDir(inode, name), nil
+	return newNamespaceDir(inode, name, rd.cli), nil
 }
 
 // ReadDirAll

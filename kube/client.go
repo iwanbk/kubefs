@@ -57,6 +57,20 @@ func (c *Client) GetNamespacesName() ([]string, error) {
 	return namespaces, nil
 }
 
+// GetPodsName get all pods name in a namespace
+func (c *Client) GetPodsName(ns string) ([]string, error) {
+	pods, err := c.cli.CoreV1().Pods(ns).List(meta_v1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	var names []string
+	for _, p := range pods.Items {
+		names = append(names, p.ObjectMeta.Name)
+	}
+	return names, nil
+}
+
 func buildOutOfClusterConfig() (*rest.Config, error) {
 	kubeconfigPath := os.Getenv("KUBECONFIG")
 	if kubeconfigPath == "" {
