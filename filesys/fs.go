@@ -22,6 +22,12 @@ func (f *FS) Root() (fs.Node, error) {
 }
 
 const (
+	permFile    = 0444
+	permDir     = 0444
+	permRootDir = 0555 // TODO: not sure why it is not 0444
+)
+
+const (
 	prefixNamespace = "root"
 	prefixPod       = "pods"
 )

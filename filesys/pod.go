@@ -28,7 +28,7 @@ func newPodDir(inode uint64, ns, name string, cli *kube.Client) *podDir {
 
 func (pd *podDir) Attr(ctx context.Context, attr *fuse.Attr) error {
 	attr.Inode = pd.inode
-	attr.Mode = os.ModeDir | 0444
+	attr.Mode = os.ModeDir | permDir
 	return nil
 }
 
@@ -43,11 +43,12 @@ func (pd *podDir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 		dirs = append(dirs, fuse.Dirent{
 			Inode: inoMgr.getOrCreate(prefixNamespace, pd.ns, prefixPod, name),
 			Name:  name,
-			Type:  fuse.DT_File,
+			Type:  fuse.DT_Dir,
 		})
 	}
 	return dirs, nil
 }
+
 func (pd *podDir) Lookup(ctx context.Context, name string) (fs.Node, error) {
 	inode, ok := inoMgr.get(prefixNamespace, pd.ns, prefixPod, name)
 	if !ok {
@@ -57,6 +58,7 @@ func (pd *podDir) Lookup(ctx context.Context, name string) (fs.Node, error) {
 	return newPodEntryDir(inode, pd.ns, name, pd.cli), nil
 }
 
+// pod entry represents a pod
 type podEntryDir struct {
 	inode uint64
 	name  string
@@ -73,8 +75,28 @@ func newPodEntryDir(inode uint64, ns, name string, cli *kube.Client) *podEntryDi
 	}
 }
 
-func (pd *podEntryDir) Attr(ctx context.Context, attr *fuse.Attr) error {
-	attr.Inode = pd.inode
-	attr.Mode = os.ModeDir | 0444
+func (p *podEntryDir) Attr(ctx context.Context, attr *fuse.Attr) error {
+	attr.Inode = p.inode
+	attr.Mode = os.ModeDir | permDir
 	return nil
+}
+
+func (p *podEntryDir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
+	var dirs []fuse.Dirent
+
+	dirs = append(dirs, fuse.Dirent{
+		Inode: inoMgr.getOrCreate(prefixNamespace, p.ns, prefixPod, p.name, "describe"),
+		Name:  "describe",
+		Type:  fuse.DT_File,
+	})
+	return dirs, nil
+}
+
+func (p *podEntryDir) Lookup(ctx context.Context, name string) (fs.Node, error) {
+	inode, ok := inoMgr.get(prefixNamespace, p.ns, prefixPod, p.name, name)
+	if !ok {
+		return nil, fuse.ENOENT
+	}
+
+	return newFile(inode, nil), nil
 }

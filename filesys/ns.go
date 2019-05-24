@@ -26,7 +26,7 @@ func newNamespaceDir(inode uint64, name string, cli *kube.Client) *namespaceDir 
 
 func (nd *namespaceDir) Attr(ctx context.Context, attr *fuse.Attr) error {
 	attr.Inode = nd.inode
-	attr.Mode = os.ModeDir | 0444
+	attr.Mode = os.ModeDir | permDir
 	return nil
 }
 

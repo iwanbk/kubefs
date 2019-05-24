@@ -25,7 +25,7 @@ func newRootDir(kubeCli *kube.Client) *rootDir {
 // the inode is always 1
 func (rd *rootDir) Attr(ctx context.Context, attr *fuse.Attr) error {
 	attr.Inode = 1
-	attr.Mode = os.ModeDir | 0555
+	attr.Mode = os.ModeDir | permRootDir
 	return nil
 }
 
