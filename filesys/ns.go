@@ -37,6 +37,11 @@ func (nd *namespaceDir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 			Name:  dirPodName,
 			Type:  fuse.DT_Dir,
 		},
+		{
+			Inode: inoMgr.getOrCreate(prefixNamespace, nd.name, prefixDeployment),
+			Name:  dirDeploymentName,
+			Type:  fuse.DT_Dir,
+		},
 	}
 	return dirs, nil
 }
@@ -47,5 +52,12 @@ func (nd *namespaceDir) Lookup(ctx context.Context, name string) (fs.Node, error
 		return nil, fuse.ENOENT
 	}
 
-	return newPodDir(inode, nd.name, name, nd.cli), nil
+	switch name {
+	case dirDeploymentName:
+		return newDeploymentDir(inode, nd.name, name, nd.cli), nil
+	case dirPodName:
+		return newPodDir(inode, nd.name, name, nd.cli), nil
+	default:
+		return nil, fuse.ENOENT
+	}
 }
