@@ -30,7 +30,7 @@ func (rd *rootDir) Attr(ctx context.Context, attr *fuse.Attr) error {
 }
 
 func (rd *rootDir) Lookup(ctx context.Context, name string) (fs.Node, error) {
-	inode, ok := inoMgr.get(prefixNamespace, name)
+	inode, ok := inoMgr.get(dirNamespace, name)
 	if !ok {
 		return nil, fuse.ENOENT
 	}
@@ -52,7 +52,7 @@ func (rd *rootDir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 
 	for _, ns := range nss {
 		dirs = append(dirs, fuse.Dirent{
-			Inode: inoMgr.getOrCreate(prefixNamespace, ns),
+			Inode: inoMgr.getOrCreate(dirNamespace, ns),
 			Name:  ns,
 			Type:  fuse.DT_Dir,
 		})

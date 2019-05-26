@@ -42,7 +42,7 @@ func (pd *podDir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 	dirs := make([]fuse.Dirent, 0, len(names))
 	for _, name := range names {
 		dirs = append(dirs, fuse.Dirent{
-			Inode: inoMgr.getOrCreate(prefixNamespace, pd.ns, prefixPod, name),
+			Inode: inoMgr.getOrCreate(dirNamespace, pd.ns, dirPod, name),
 			Name:  name,
 			Type:  fuse.DT_Dir,
 		})
@@ -51,7 +51,7 @@ func (pd *podDir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 }
 
 func (pd *podDir) Lookup(ctx context.Context, name string) (fs.Node, error) {
-	inode, ok := inoMgr.get(prefixNamespace, pd.ns, prefixPod, name)
+	inode, ok := inoMgr.get(dirNamespace, pd.ns, dirPod, name)
 	if !ok {
 		return nil, fuse.ENOENT
 	}
@@ -87,12 +87,12 @@ func (p *pod) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 
 	dirs = append(dirs,
 		fuse.Dirent{
-			Inode: inoMgr.getOrCreate(prefixNamespace, p.ns, prefixPod, p.name, podDescribe),
+			Inode: inoMgr.getOrCreate(dirNamespace, p.ns, dirPod, p.name, podDescribe),
 			Name:  podDescribe,
 			Type:  fuse.DT_File,
 		},
 		fuse.Dirent{
-			Inode: inoMgr.getOrCreate(prefixNamespace, p.ns, prefixPod, p.name, podLogs),
+			Inode: inoMgr.getOrCreate(dirNamespace, p.ns, dirPod, p.name, podLogs),
 			Name:  podLogs,
 			Type:  fuse.DT_File,
 		},
@@ -101,7 +101,7 @@ func (p *pod) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 }
 
 func (p *pod) Lookup(ctx context.Context, name string) (fs.Node, error) {
-	inode, ok := inoMgr.get(prefixNamespace, p.ns, prefixPod, p.name, name)
+	inode, ok := inoMgr.get(dirNamespace, p.ns, dirPod, p.name, name)
 	if !ok {
 		return nil, fuse.ENOENT
 	}

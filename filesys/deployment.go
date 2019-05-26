@@ -42,7 +42,7 @@ func (dd *deploymentDir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) 
 	dirs := make([]fuse.Dirent, 0, len(names))
 	for _, name := range names {
 		dirs = append(dirs, fuse.Dirent{
-			Inode: inoMgr.getOrCreate(prefixNamespace, dd.ns, prefixDeployment, name),
+			Inode: inoMgr.getOrCreate(dirNamespace, dd.ns, dirDeployment, name),
 			Name:  name,
 			Type:  fuse.DT_Dir,
 		})
@@ -51,7 +51,7 @@ func (dd *deploymentDir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) 
 }
 
 func (dd *deploymentDir) Lookup(ctx context.Context, name string) (fs.Node, error) {
-	inode, ok := inoMgr.get(prefixNamespace, dd.ns, prefixDeployment, name)
+	inode, ok := inoMgr.get(dirNamespace, dd.ns, dirDeployment, name)
 	if !ok {
 		return nil, fuse.ENOENT
 	}
@@ -87,7 +87,7 @@ func (d *deployment) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 
 	dirs = append(dirs,
 		fuse.Dirent{
-			Inode: inoMgr.getOrCreate(prefixNamespace, d.ns, prefixDeployment, d.name, deploymentDescribe),
+			Inode: inoMgr.getOrCreate(dirNamespace, d.ns, dirDeployment, d.name, deploymentDescribe),
 			Name:  deploymentDescribe,
 			Type:  fuse.DT_File,
 		},
@@ -96,7 +96,7 @@ func (d *deployment) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 }
 
 func (d *deployment) Lookup(ctx context.Context, name string) (fs.Node, error) {
-	inode, ok := inoMgr.get(prefixNamespace, d.ns, prefixDeployment, d.name, name)
+	inode, ok := inoMgr.get(dirNamespace, d.ns, dirDeployment, d.name, name)
 	if !ok {
 		return nil, fuse.ENOENT
 	}

@@ -28,12 +28,8 @@ const (
 )
 
 const (
-	prefixNamespace  = "root"
-	prefixPod        = "pods"
-	prefixDeployment = "deployments"
+	dirNamespace  = "root"
+	dirPod        = "pods"
+	dirDeployment = "deployments"
 )
 
-const (
-	dirPodName        = "pods"
-	dirDeploymentName = "deployments"
-)
