@@ -9,7 +9,8 @@ import (
 	"github.com/iwanbk/kubefs/kube"
 )
 
-// podDir dir represents a pod directory
+// podDir dir represents a pods directory
+// it contains all pods in the current namespace
 type podDir struct {
 	inode uint64
 	name  string
@@ -55,19 +56,19 @@ func (pd *podDir) Lookup(ctx context.Context, name string) (fs.Node, error) {
 		return nil, fuse.ENOENT
 	}
 
-	return newPodEntryDir(inode, pd.ns, name, pd.cli), nil
+	return newPod(inode, pd.ns, name, pd.cli), nil
 }
 
 // pod entry represents a pod
-type podEntryDir struct {
+type pod struct {
 	inode uint64
 	name  string
 	ns    string
 	cli   *kube.Client
 }
 
-func newPodEntryDir(inode uint64, ns, name string, cli *kube.Client) *podEntryDir {
-	return &podEntryDir{
+func newPod(inode uint64, ns, name string, cli *kube.Client) *pod {
+	return &pod{
 		inode: inode,
 		ns:    ns,
 		name:  name,
@@ -75,13 +76,13 @@ func newPodEntryDir(inode uint64, ns, name string, cli *kube.Client) *podEntryDi
 	}
 }
 
-func (p *podEntryDir) Attr(ctx context.Context, attr *fuse.Attr) error {
+func (p *pod) Attr(ctx context.Context, attr *fuse.Attr) error {
 	attr.Inode = p.inode
 	attr.Mode = os.ModeDir | permDir
 	return nil
 }
 
-func (p *podEntryDir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
+func (p *pod) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 	var dirs []fuse.Dirent
 
 	dirs = append(dirs,
@@ -99,7 +100,7 @@ func (p *podEntryDir) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 	return dirs, nil
 }
 
-func (p *podEntryDir) Lookup(ctx context.Context, name string) (fs.Node, error) {
+func (p *pod) Lookup(ctx context.Context, name string) (fs.Node, error) {
 	inode, ok := inoMgr.get(prefixNamespace, p.ns, prefixPod, p.name, name)
 	if !ok {
 		return nil, fuse.ENOENT
@@ -114,12 +115,12 @@ func (p *podEntryDir) Lookup(ctx context.Context, name string) (fs.Node, error) 
 	}
 }
 
-func (p *podEntryDir) describe(ctx context.Context) ([]byte, error) {
+func (p *pod) describe(ctx context.Context) ([]byte, error) {
 	b, err := p.cli.GetPodDescribe(ctx, p.ns, p.name)
 	return b, err
 }
 
-func (p *podEntryDir) logs(ctx context.Context) ([]byte, error) {
+func (p *pod) logs(ctx context.Context) ([]byte, error) {
 	b, err := p.cli.GetPodLogs(ctx, p.ns, p.name)
 	return b, err
 }
