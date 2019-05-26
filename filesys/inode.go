@@ -1,6 +1,7 @@
 package filesys
 
 import (
+	"strings"
 	"sync"
 )
 
@@ -25,8 +26,8 @@ func newInodeManager() *inodeManager {
 	}
 }
 
-func (im *inodeManager) get(prefix, key string) (uint64, bool) {
-	fullKey := prefix + ":" + key
+func (im *inodeManager) get(keys ...string) (uint64, bool) {
+	fullKey := strings.Join(keys, ":")
 
 	// check existing
 	im.mtx.RLock()
@@ -36,13 +37,13 @@ func (im *inodeManager) get(prefix, key string) (uint64, bool) {
 	return id, ok
 }
 
-func (im *inodeManager) getOrCreate(prefix, key string) uint64 {
-	id, ok := im.get(prefix, key)
+func (im *inodeManager) getOrCreate(keys ...string) uint64 {
+	id, ok := im.get(keys...)
 	if ok {
 		return id
 	}
 
-	fullKey := prefix + ":" + key
+	fullKey := strings.Join(keys, ":")
 	// generate new
 	im.mtx.Lock()
 

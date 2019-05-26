@@ -1,6 +1,7 @@
 package kube
 
 import (
+	"context"
 	"os"
 
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -56,6 +57,37 @@ func (c *Client) GetNamespacesName() ([]string, error) {
 	}
 	return namespaces, nil
 }
+
+// GetPodsName get all pods name in a namespace
+func (c *Client) GetPodsName(ns string) ([]string, error) {
+	pods, err := c.cli.CoreV1().Pods(ns).List(meta_v1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	var names []string
+	for _, p := range pods.Items {
+		names = append(names, p.ObjectMeta.Name)
+	}
+	return names, nil
+}
+
+func (c *Client) GetPodDescribe(ctx context.Context, ns, name string) ([]byte, error) {
+	return c.kubeCliNs(ctx, ns, []string{"describe", "pod", name}...)
+}
+
+func (c *Client) GetPodLogs(ctx context.Context, ns, name string) ([]byte, error) {
+	return c.kubeCliNs(ctx, ns, []string{"logs", name}...)
+}
+
+/*
+func (c *Client) getPodDescribeKubeCli(ns, name string) ([]byte, error) {
+	pod, err := c.cli.CoreV1().Pods(ns).Get(name, meta_v1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+	return json.MarshalIndent(pod, "", "\t")
+}*/
 
 func buildOutOfClusterConfig() (*rest.Config, error) {
 	kubeconfigPath := os.Getenv("KUBECONFIG")
