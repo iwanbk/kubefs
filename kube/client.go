@@ -1,6 +1,7 @@
 package kube
 
 import (
+	"context"
 	"os"
 
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -70,6 +71,23 @@ func (c *Client) GetPodsName(ns string) ([]string, error) {
 	}
 	return names, nil
 }
+
+func (c *Client) GetPodDescribe(ctx context.Context, ns, name string) ([]byte, error) {
+	return c.kubeCliNs(ctx, ns, []string{"describe", "pod", name}...)
+}
+
+func (c *Client) GetPodLogs(ctx context.Context, ns, name string) ([]byte, error) {
+	return c.kubeCliNs(ctx, ns, []string{"logs", name}...)
+}
+
+/*
+func (c *Client) getPodDescribeKubeCli(ns, name string) ([]byte, error) {
+	pod, err := c.cli.CoreV1().Pods(ns).Get(name, meta_v1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+	return json.MarshalIndent(pod, "", "\t")
+}*/
 
 func buildOutOfClusterConfig() (*rest.Config, error) {
 	kubeconfigPath := os.Getenv("KUBECONFIG")
